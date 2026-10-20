@@ -1,0 +1,3 @@
+*.dic -diff linguist-generated=true
+*.aff -diff linguist-generated=true
+sources/** binary
