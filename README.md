@@ -1,8 +1,9 @@
 # @anyproto/spelling-dictionaries
 
-The Hunspell dictionaries Any uses for on-device spell checking, published as one
-versioned package so the app repository carries a dependency line instead of
-tens of megabytes of word lists.
+The Hunspell dictionaries Any uses for on-device spell checking, kept in their
+own repository so the app carries a dependency line instead of tens of megabytes
+of word lists. It is not published to a registry: the app installs it straight
+from git, pinned to a commit.
 
 The package holds data only. The checking engine, the language picker and the
 personal dictionary live in the app.
@@ -38,6 +39,13 @@ distribution files from [wooorm/dictionaries](https://github.com/wooorm/dictiona
 
 ## Usage
 
+Add the dependency pinned to a full commit SHA; the lockfile records it, so every
+install gets the same bytes:
+
+```json
+"@anyproto/spelling-dictionaries": "github:anyproto/spelling-dictionaries#<commit-sha>"
+```
+
 ```js
 import { dictionaries } from '@anyproto/spelling-dictionaries'
 import aff from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url'
@@ -50,21 +58,27 @@ only when a language is selected.
 
 ## Layout
 
-| Path                    | In the npm package | What it is                                                   |
-| ----------------------- | ------------------ | ------------------------------------------------------------ |
-| `dictionaries/<id>/`    | yes                | `index.aff`, `index.dic` and the original `license` notice   |
-| `licenses/`             | yes                | Full GPL, LGPL and MPL texts the notices refer to            |
-| `manifest.json`         | yes                | Upstream release, size and SHA-256 of every file and archive |
-| `index.js`, `index.d.ts` | yes               | The dictionary list and its `DictionaryId` type              |
-| `sources/`              | no                 | Preferred-form sources for the GPL / LGPL / MPL dictionaries |
-| `scripts/verify.js`     | no                 | The hash and upstream check                                  |
+| Path                     | Installed | What it is                                                   |
+| ------------------------ | --------- | ------------------------------------------------------------ |
+| `dictionaries/<id>/`     | yes       | `index.aff`, `index.dic` and the original `license` notice   |
+| `licenses/`              | yes       | Full GPL, LGPL and MPL texts the notices refer to            |
+| `manifest.json`          | yes       | Upstream release, size and SHA-256 of every file and archive |
+| `index.js`, `index.d.ts` | yes       | The dictionary list and its `DictionaryId` type              |
+| `sources/`               | no        | Preferred-form sources for the GPL / LGPL / MPL dictionaries |
+| `scripts/verify.js`      | no        | The hash and upstream check                                  |
+
+`sources/` and `scripts/` are `export-ignore` in `.gitattributes`, so the commit
+archive a package manager downloads leaves them out; `files` in `package.json`
+keeps them out of an install from a full clone. Both stay in git history.
 
 ## Sources
 
 Several dictionaries are generated from other sources, which their licenses
-require us to make available. `sources/` keeps them in this repository, outside
-the npm package; `manifest.json` pins each archive's URL, size and SHA-256 and
-the dictionaries it covers.
+require us to make available. `sources/` keeps them in this repository: the
+commit an app pins carries the exact sources of the dictionaries it ships.
+`manifest.json` pins each archive's URL, size and SHA-256 and the dictionaries it
+covers. GitHub's "Download ZIP" omits them because of `export-ignore`; clone the
+repository to get them.
 
 - German: Björn Jacke's [igerman98 20161207](https://www.j3e.de/ispell/igerman98/).
 - Ukrainian: complete `brown-uk/dict_uk` **v6.1.0** word lists, affix sources,
@@ -102,5 +116,6 @@ the GPL dictionaries as MIT.
 1. Replace the files under `dictionaries/<id>/` with the new npm release.
 2. Update that entry in `manifest.json` (version, tarball, sizes, hashes), and
    its source archive if the upstream source changed.
-3. Run `npm run verify` and `npm run verify:upstream`, then bump the package
-   version.
+3. Run `npm run verify` and `npm run verify:upstream`, bump `version` in
+   `package.json`, and commit.
+4. Point the app's dependency at the new commit SHA.

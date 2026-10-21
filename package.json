@@ -25,13 +25,9 @@
   ],
   "scripts": {
     "verify": "node scripts/verify.js",
-    "verify:upstream": "node scripts/verify.js --upstream",
-    "prepack": "node scripts/verify.js"
+    "verify:upstream": "node scripts/verify.js --upstream"
   },
   "engines": {
     "node": ">=22"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
