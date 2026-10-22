@@ -47,9 +47,9 @@ install gets the same bytes:
 ```
 
 ```js
-import { dictionaries } from '@anyproto/spelling-dictionaries'
-import aff from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url'
-import dic from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url'
+import { dictionaries } from "@anyproto/spelling-dictionaries";
+import aff from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url";
+import dic from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url";
 ```
 
 `dictionaries` lists each id with the npm release and license it came from. The
@@ -61,10 +61,10 @@ only when a language is selected.
 | Path                     | Installed | What it is                                                   |
 | ------------------------ | --------- | ------------------------------------------------------------ |
 | `dictionaries/<id>/`     | yes       | `index.aff`, `index.dic` and the original `license` notice   |
-| `licenses/`              | yes       | Full GPL, LGPL and MPL texts the notices refer to            |
+| `licenses/`              | yes       | Full GPL, LGPL and MPL texts; `engine/` holds engine notices |
 | `manifest.json`          | yes       | Upstream release, size and SHA-256 of every file and archive |
 | `index.js`, `index.d.ts` | yes       | The dictionary list and its `DictionaryId` type              |
-| `sources/`               | no        | Preferred-form sources for the dictionaries and the engine    |
+| `sources/`               | no        | Preferred-form sources for the dictionaries and the engine   |
 | `scripts/verify.js`      | no        | The hash and upstream check                                  |
 
 `sources/` and `scripts/` are `export-ignore` in `.gitattributes`, so the commit
@@ -117,6 +117,27 @@ table above. The dictionaries are separate data files and are not relicensed by
 this package or by the app that loads them. That is why `package.json` points at
 this section instead of declaring `MIT`: a license scanner would otherwise read
 the GPL dictionaries as MIT.
+
+### Spelling engine
+
+Any checks spelling with [hunspell-asm 4.0.2](https://github.com/kwonoj/hunspell-asm/tree/v4.0.2)
+(MIT, OJ Kwon), whose WebAssembly runtime is built from **Hunspell 1.6.2**. Hunspell
+is offered under MPL 1.1, GPL 2.0 or LGPL 2.1; Any uses the **MPL 1.1** option.
+The engine's notices are kept here with the dictionaries' so that one place
+covers everything the app's spell checker distributes:
+
+| Component                      | License                      | Notice                                                                                                                  |
+| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Hunspell 1.6.2                 | MPL 1.1 / GPL 2.0 / LGPL 2.1 | `licenses/engine/Hunspell-LICENSE.txt`, `licenses/MPL-1.1.txt`                                                          |
+| `hunspell-asm@4.0.2`           | MIT                          | `licenses/engine/hunspell-asm-MIT.txt`                                                                                  |
+| `emscripten-wasm-loader@3.0.3` | MIT                          | `licenses/engine/emscripten-wasm-loader-package.json` (it publishes no license file; its package metadata declares MIT) |
+| `nanoid@2.1.11`                | MIT                          | `licenses/engine/nanoid-MIT.txt`                                                                                        |
+| `getroot@1.0.0`                | MIT                          | `licenses/engine/getroot-MIT.txt`                                                                                       |
+| `unixify@1.0.0`                | MIT                          | `licenses/engine/unixify-MIT.txt`                                                                                       |
+
+The Hunspell source and the
+[docker-hunspell-wasm fc6a952-200131](https://github.com/kwonoj/docker-hunspell-wasm/releases/tag/fc6a952-200131)
+build that produced the binary are in `sources/` (see [Sources](#sources)).
 
 ## Updating a dictionary
 
