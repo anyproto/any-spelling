@@ -1,6 +1,6 @@
 {
   "name": "@anyproto/spelling-dictionaries",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hunspell dictionaries Any bundles for on-device spell checking, pinned with provenance and SHA-256 hashes.",
   "type": "module",
   "license": "SEE LICENSE IN README.md",

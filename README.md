@@ -64,7 +64,7 @@ only when a language is selected.
 | `licenses/`              | yes       | Full GPL, LGPL and MPL texts the notices refer to            |
 | `manifest.json`          | yes       | Upstream release, size and SHA-256 of every file and archive |
 | `index.js`, `index.d.ts` | yes       | The dictionary list and its `DictionaryId` type              |
-| `sources/`               | no        | Preferred-form sources for the GPL / LGPL / MPL dictionaries |
+| `sources/`               | no        | Preferred-form sources for the dictionaries and the engine    |
 | `scripts/verify.js`      | no        | The hash and upstream check                                  |
 
 `sources/` and `scripts/` are `export-ignore` in `.gitattributes`, so the commit
@@ -99,6 +99,13 @@ repository to get them.
   `a7c018ca64fcb125cabbd5e4ab120b146b2fa0e8`; its crawl, normalization and
   package-generation scripts are kept as
   `sources/wooorm-dictionary-tools-a7c018c.tar.gz`.
+
+The engine that reads these dictionaries is not in this package, but its
+sources are kept here for the same reason: Any distributes Hunspell compiled to
+WebAssembly (through `hunspell-asm@4.0.2`) under the MPL 1.1 option.
+`sources/hunspell-1.6.2.tar.gz` is the complete Hunspell source and
+`sources/docker-hunspell-wasm-fc6a952.tar.gz` the build that produced the binary;
+both are byte-identical to the GitHub archives their manifest entries name.
 
 ## Licensing
 
