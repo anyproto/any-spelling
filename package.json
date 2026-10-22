@@ -1,6 +1,6 @@
 {
   "name": "@anyproto/spelling-dictionaries",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Hunspell dictionaries Any bundles for on-device spell checking, pinned with provenance and SHA-256 hashes.",
   "type": "module",
   "license": "SEE LICENSE IN README.md",
@@ -14,18 +14,21 @@
       "default": "./index.js"
     },
     "./manifest.json": "./manifest.json",
-    "./dictionaries/*": "./dictionaries/*"
+    "./dictionaries/*": "./dictionaries/*",
+    "./engine/*": "./engine/*"
   },
   "files": [
     "index.js",
     "index.d.ts",
     "manifest.json",
     "dictionaries",
+    "engine",
     "licenses"
   ],
   "scripts": {
     "verify": "node scripts/verify.js",
-    "verify:upstream": "node scripts/verify.js --upstream"
+    "verify:upstream": "node scripts/verify.js --upstream",
+    "build:engine": "bash scripts/build-engine.sh"
   },
   "engines": {
     "node": ">=22"

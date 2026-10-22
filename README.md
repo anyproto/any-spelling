@@ -5,8 +5,9 @@ own repository so the app carries a dependency line instead of tens of megabytes
 of word lists. It is not published to a registry: the app installs it straight
 from git, pinned to a commit.
 
-The package holds data only. The checking engine, the language picker and the
-personal dictionary live in the app.
+The package also carries the checking engine: upstream Hunspell compiled to
+WebAssembly from the source kept here. The language picker and the personal
+dictionary live in the app.
 
 ## Dictionaries
 
@@ -47,9 +48,9 @@ install gets the same bytes:
 ```
 
 ```js
-import { dictionaries } from '@anyproto/spelling-dictionaries'
-import aff from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url&no-inline'
-import dic from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url&no-inline'
+import { dictionaries } from "@anyproto/spelling-dictionaries";
+import aff from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url&no-inline";
+import dic from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url&no-inline";
 ```
 
 `dictionaries` lists each id with the npm release and license it came from. The
@@ -57,16 +58,31 @@ import dic from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?ur
 only when a language is selected. `no-inline` keeps the small `.aff` files from
 becoming `data:` URLs, which a `connect-src 'self'` policy refuses to fetch.
 
+The engine is an Emscripten ES module factory over Hunspell's C API
+(`engine/hunspell.d.ts` types the exports); hand it the `.wasm` URL the same way:
+
+```js
+import createHunspellModule from "@anyproto/spelling-dictionaries/engine/hunspell.js";
+import wasm from "@anyproto/spelling-dictionaries/engine/hunspell.wasm?url&no-inline";
+
+const hunspell = await createHunspellModule({ locateFile: () => wasm });
+```
+
+It runs in a window, a worker or Node, and evaluates no JavaScript at runtime,
+so a CSP needs `'wasm-unsafe-eval'` but not `'unsafe-eval'`.
+
 ## Layout
 
 | Path                     | Installed | What it is                                                   |
 | ------------------------ | --------- | ------------------------------------------------------------ |
 | `dictionaries/<id>/`     | yes       | `index.aff`, `index.dic` and the original `license` notice   |
+| `engine/`                | yes       | `hunspell.js`, `hunspell.wasm` and their type declarations   |
 | `licenses/`              | yes       | Full GPL, LGPL and MPL texts; `engine/` holds engine notices |
 | `manifest.json`          | yes       | Upstream release, size and SHA-256 of every file and archive |
 | `index.js`, `index.d.ts` | yes       | The dictionary list and its `DictionaryId` type              |
 | `sources/`               | no        | Preferred-form sources for the dictionaries and the engine   |
 | `scripts/verify.js`      | no        | The hash and upstream check                                  |
+| `scripts/build-engine*`  | no        | The engine build script and its pinned Docker image          |
 
 `sources/` and `scripts/` are `export-ignore` in `.gitattributes`, so the commit
 archive a package manager downloads leaves them out; `files` in `package.json`
@@ -101,12 +117,11 @@ repository to get them.
   package-generation scripts are kept as
   `sources/wooorm-dictionary-tools-a7c018c.tar.gz`.
 
-The engine that reads these dictionaries is not in this package, but its
-sources are kept here for the same reason: Any distributes Hunspell compiled to
-WebAssembly (through `hunspell-asm@4.0.2`) under the MPL 1.1 option.
-`sources/hunspell-1.6.2.tar.gz` is the complete Hunspell source and
-`sources/docker-hunspell-wasm-fc6a952.tar.gz` the build that produced the binary;
-both are byte-identical to the GitHub archives their manifest entries name.
+The engine's source is kept for the same reason: `engine/` is Hunspell compiled
+to WebAssembly, distributed under the MPL 1.1 option.
+`sources/hunspell-1.7.5.tar.gz` is byte-identical to the release tarball its
+manifest entry names, and [Rebuilding the engine](#rebuilding-the-engine) turns
+it into `engine/`.
 
 ## Licensing
 
@@ -121,24 +136,38 @@ the GPL dictionaries as MIT.
 
 ### Spelling engine
 
-Any checks spelling with [hunspell-asm 4.0.2](https://github.com/kwonoj/hunspell-asm/tree/v4.0.2)
-(MIT, OJ Kwon), whose WebAssembly runtime is built from **Hunspell 1.6.2**. Hunspell
-is offered under MPL 1.1, GPL 2.0 or LGPL 2.1; Any uses the **MPL 1.1** option.
-The engine's notices are kept here with the dictionaries' so that one place
-covers everything the app's spell checker distributes:
+`engine/` is **Hunspell 1.7.5**, offered under MPL 1.1, GPL 2.0 or LGPL 2.1; Any
+uses the **MPL 1.1** option. Emscripten links parts of its runtime into the
+binary, which carry their own permissive notices. They are kept here with the
+dictionaries' so that one place covers everything the spell checker distributes:
 
-| Component                      | License                      | Notice                                                                                                                  |
-| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Hunspell 1.6.2                 | MPL 1.1 / GPL 2.0 / LGPL 2.1 | `licenses/engine/Hunspell-LICENSE.txt`, `licenses/MPL-1.1.txt`                                                          |
-| `hunspell-asm@4.0.2`           | MIT                          | `licenses/engine/hunspell-asm-MIT.txt`                                                                                  |
-| `emscripten-wasm-loader@3.0.3` | MIT                          | `licenses/engine/emscripten-wasm-loader-package.json` (it publishes no license file; its package metadata declares MIT) |
-| `nanoid@2.1.11`                | MIT                          | `licenses/engine/nanoid-MIT.txt`                                                                                        |
-| `getroot@1.0.0`                | MIT                          | `licenses/engine/getroot-MIT.txt`                                                                                       |
-| `unixify@1.0.0`                | MIT                          | `licenses/engine/unixify-MIT.txt`                                                                                       |
+| Component                 | License                           | Notice                                                                        |
+| ------------------------- | --------------------------------- | ----------------------------------------------------------------------------- |
+| Hunspell 1.7.5            | MPL 1.1 / GPL 2.0 / LGPL 2.1      | `licenses/engine/Hunspell-LICENSE.txt`, `licenses/MPL-1.1.txt`                |
+| Emscripten 6.0.13 runtime | MIT / University of Illinois NCSA | `licenses/engine/Emscripten-LICENSE.txt`                                      |
+| musl libc                 | MIT                               | `licenses/engine/musl-COPYRIGHT.txt`                                          |
+| libc++, libc++abi         | Apache 2.0 with LLVM exception    | `licenses/engine/libcxx-LICENSE.txt`, `licenses/engine/libcxxabi-LICENSE.txt` |
 
-The Hunspell source and the
-[docker-hunspell-wasm fc6a952-200131](https://github.com/kwonoj/docker-hunspell-wasm/releases/tag/fc6a952-200131)
-build that produced the binary are in `sources/` (see [Sources](#sources)).
+The Hunspell source is in `sources/` (see [Sources](#sources)).
+
+## Rebuilding the engine
+
+`scripts/build-engine.sh` checks the SHA-256 of `sources/hunspell-1.7.5.tar.gz`,
+refuses any compiler but emsdk **6.0.13**, compiles Hunspell's
+`src/hunspell/*.cxx` and writes `engine/hunspell.{js,wasm}`. The output is
+deterministic: the same source and compiler give the same bytes, which
+`manifest.json` pins. Either of these reproduces it:
+
+```sh
+docker build -f scripts/engine.Dockerfile -o engine .   # pinned emscripten/emsdk image
+npm run build:engine                                     # inside an activated emsdk 6.0.13
+```
+
+The `engine` workflow rebuilds it in the Docker image on every push and fails if
+the result differs from the committed files. To move to a new Hunspell or emsdk,
+add the new release tarball to `sources/`, change the versions and hash at the
+top of the script and the image in the Dockerfile, rebuild, and update the
+`sources` and `engine` entries in `manifest.json`.
 
 ## Updating a dictionary
 

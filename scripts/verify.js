@@ -33,9 +33,12 @@ async function checkLocal(manifest) {
   const files = manifest.dictionaries.flatMap((dictionary) => dictionary.files)
   await checkPinned(files, errors)
   await checkPinned(manifest.sources, errors)
+  await checkPinned(manifest.engine.files, errors)
 
-  const pinned = new Set([...files, ...manifest.sources].map((entry) => entry.file))
-  for (const file of [...(await listFiles('dictionaries')), ...(await listFiles('sources'))]) {
+  const pinned = new Set([...files, ...manifest.sources, ...manifest.engine.files].map((entry) => entry.file))
+  const engineTypes = 'engine/hunspell.d.ts'
+  for (const file of [...(await listFiles('dictionaries')), ...(await listFiles('sources')), ...(await listFiles('engine'))]) {
+    if (file === engineTypes) continue
     if (!pinned.has(file)) errors.push(`${file}: not in manifest.json`)
   }
 
@@ -103,7 +106,9 @@ async function main() {
     process.exit(1)
   }
   const pinned = manifest.dictionaries.reduce((total, dictionary) => total + dictionary.files.length, 0)
-  console.log(`ok: ${manifest.dictionaries.length} dictionaries, ${pinned} files, ${manifest.sources.length} source archives`)
+  console.log(
+    `ok: ${manifest.dictionaries.length} dictionaries, ${pinned} files, ${manifest.sources.length} source archives, Hunspell ${manifest.engine.hunspell}`,
+  )
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) await main()

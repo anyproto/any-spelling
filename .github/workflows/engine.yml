@@ -1,0 +1,23 @@
+name: engine
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rebuild the engine from sources/
+        run: docker build -f scripts/engine.Dockerfile -o engine .
+      - name: The committed engine is the one the sources build
+        run: git diff --exit-code -- engine/
+      - name: Hashes
+        run: node scripts/verify.js

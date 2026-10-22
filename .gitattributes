@@ -3,3 +3,5 @@
 sources/** binary
 /sources export-ignore
 /scripts export-ignore
+engine/hunspell.js -diff linguist-generated=true
+engine/hunspell.wasm binary
