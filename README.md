@@ -47,14 +47,15 @@ install gets the same bytes:
 ```
 
 ```js
-import { dictionaries } from "@anyproto/spelling-dictionaries";
-import aff from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url";
-import dic from "@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url";
+import { dictionaries } from '@anyproto/spelling-dictionaries'
+import aff from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url&no-inline'
+import dic from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url&no-inline'
 ```
 
 `dictionaries` lists each id with the npm release and license it came from. The
 `?url` imports are Vite's: the files are emitted as hashed assets and fetched
-only when a language is selected.
+only when a language is selected. `no-inline` keeps the small `.aff` files from
+becoming `data:` URLs, which a `connect-src 'self'` policy refuses to fetch.
 
 ## Layout
 
