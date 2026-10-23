@@ -1,6 +1,6 @@
 //! `manifest.json` pins every dictionary file and source archive this
-//! repository ships; `scripts/verify.js --upstream` checks them against their
-//! upstream releases.
+//! repository ships; `tests/upstream.rs` checks them against their upstream
+//! releases.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

@@ -422,14 +422,6 @@
         "pl-PL"
       ],
       "description": "Unmodified crawl/normalization and package-generation scripts, with MIT notice, from the gitHead shared by all nine npm releases. The crawl script documents original release URLs, encodings and whitespace normalization."
-    },
-    {
-      "file": "sources/hunspell-1.7.5.tar.gz",
-      "bytes": 1160183,
-      "sha256": "2e559f0c2a592ba48e421477f58e9bf7e01062277a4a7821afb52fc9401010ae",
-      "url": "https://github.com/hunspell/hunspell/releases/download/v1.7.5/hunspell-1.7.5.tar.gz",
-      "languages": [],
-      "description": "Complete Hunspell 1.7.5 release, the source of hunspell-sys/hunspell/ (one marked change, hunspell-sys/PATCHES.md). Distributed under its MPL 1.1 option."
     }
   ]
 }

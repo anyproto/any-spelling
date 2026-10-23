@@ -30,7 +30,8 @@ registry.
 
 The `index.aff`, `index.dic` and `license` files are the unmodified npm
 distribution files from [wooorm/dictionaries](https://github.com/wooorm/dictionaries).
-`node scripts/verify.js --upstream` downloads each npm tarball and proves it byte for byte.
+`cargo test --test upstream -- --ignored` downloads each npm tarball and proves
+them byte for byte; plain `cargo test` skips it.
 
 - `dictionary-pt` is the Brazilian VERO dictionary despite its generic name, so
   it is exposed as `pt-BR`; Portugal has its own pack.
@@ -67,8 +68,7 @@ once, however many sessions use it.
 | `hunspell-sys/`        | Hunspell 1.7.5 source, its licenses, `PATCHES.md`, `patches/` |
 | `licenses/`            | Full GPL, LGPL and MPL texts the dictionary licenses name     |
 | `manifest.json`        | Upstream release, size and SHA-256 of every file and archive  |
-| `sources/`             | Preferred-form sources for the dictionaries and Hunspell      |
-| `scripts/verify.js`    | The byte-for-byte check against the upstream npm releases     |
+| `sources/`             | Preferred-form sources for the dictionaries                   |
 
 `cargo test` checks every file against `manifest.json`. `sources/` is
 `export-ignore` in `.gitattributes`, so a commit archive leaves it out; Cargo
@@ -103,10 +103,8 @@ repository to get them.
   package-generation scripts are kept as
   `sources/wooorm-dictionary-tools-a7c018c.tar.gz`.
 
-Hunspell's source is kept for the same reason: `sources/hunspell-1.7.5.tar.gz`
-is byte-identical to the release tarball its manifest entry names, and
-`hunspell-sys/hunspell/` is its `src/hunspell/` with the change
-`hunspell-sys/PATCHES.md` records.
+Hunspell's own source is `hunspell-sys/hunspell/`: the `src/hunspell/` of the
+1.7.5 release with the change `hunspell-sys/PATCHES.md` records.
 
 ## Licensing
 
@@ -130,12 +128,11 @@ in `hunspell-sys/PATCHES.md`.
 1. Replace the files under `dictionaries/<id>/` with the new npm release.
 2. Update that entry in `manifest.json` (version, tarball, sizes, hashes), and
    its source archive if the upstream source changed.
-3. Run `cargo test` and `node scripts/verify.js --upstream`, and commit.
+3. Run `cargo test` and `cargo test --test upstream -- --ignored`, and commit.
 4. Point the app's `rev` at the new commit SHA.
 
 ## Updating Hunspell
 
-Add the new release tarball to `sources/` and `manifest.json`, replace
-`hunspell-sys/hunspell/` with its `src/hunspell/` and license files, re-apply
+Replace `hunspell-sys/hunspell/` with the new release's `src/hunspell/` and license files, re-apply
 the patches `hunspell-sys/PATCHES.md` lists (or drop them), bump the version in
 `hunspell-sys/Cargo.toml`, and run `cargo test`.

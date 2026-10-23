@@ -1,7 +1,7 @@
 # Changes to the vendored Hunspell
 
 `hunspell/` is Hunspell 1.7.5 from the release tarball
-(`hunspell-1.7.5.tar.gz`, SHA-256
+(`https://github.com/hunspell/hunspell/releases/download/v1.7.5/hunspell-1.7.5.tar.gz`, SHA-256
 `2e559f0c2a592ba48e421477f58e9bf7e01062277a4a7821afb52fc9401010ae`), used
 under its MPL 1.1 option, with the one change below. Each change is marked in
 the file it touches and kept as a patch in `patches/`.
