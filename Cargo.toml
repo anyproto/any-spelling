@@ -5,6 +5,7 @@ description = "Any's spell checker: Hunspell 1.7.5 over the dictionaries in this
 license = "MIT AND (MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)"
 edition = "2021"
 rust-version = "1.88"
+repository = "https://github.com/anyproto/any-spelling"
 # Lets the app's build script find `dictionaries/` (DEP_ANY_SPELLING_DICTIONARIES).
 links = "any_spelling"
 publish = false

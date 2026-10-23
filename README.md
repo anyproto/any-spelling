@@ -1,13 +1,14 @@
-# anyproto/spelling-dictionaries
+# any-spelling
 
-The Hunspell dictionaries Any uses for on-device spell checking, and the Rust
-crate, `any-spelling`, that checks spelling with them: sessions over any set of
-the dictionaries below, a personal vocabulary Hunspell never sees, script
-gating, suggestion ranking, and issues reported in UTF-16 offsets for a
-JavaScript caller. Hunspell 1.7.5 is compiled from vendored source with one
-marked change ([`vendor/PATCHES.md`](vendor/PATCHES.md)). The desktop app
-depends on this repository through Cargo, pinned to a commit; nothing is
-published to a registry.
+Any's on-device spell checker: the `any-spelling` Rust crate and the Hunspell
+dictionaries it checks with. The crate runs sessions over any set of the
+dictionaries below, keeps a personal vocabulary Hunspell never sees, gates each
+dictionary to its script, ranks suggestions across languages, and reports
+issues in UTF-16 offsets for a JavaScript caller. Hunspell 1.7.5 is compiled
+from vendored source with one marked change
+([`vendor/PATCHES.md`](vendor/PATCHES.md)). The desktop app depends on this
+repository through Cargo, pinned to a commit; nothing is published to a
+registry.
 
 ## Dictionaries
 
@@ -42,7 +43,7 @@ them byte for byte; plain `cargo test` skips it.
 ## Usage
 
 ```toml
-any-spelling = { git = "https://github.com/anyproto/spelling-dictionaries", rev = "<commit-sha>" }
+any-spelling = { git = "https://github.com/anyproto/any-spelling", rev = "<commit-sha>" }
 ```
 
 ```rust
