@@ -422,22 +422,6 @@
         "pl-PL"
       ],
       "description": "Unmodified crawl/normalization and package-generation scripts, with MIT notice, from the gitHead shared by all nine npm releases. The crawl script documents original release URLs, encodings and whitespace normalization."
-    },
-    {
-      "file": "sources/hunspell-1.6.2.tar.gz",
-      "bytes": 721165,
-      "sha256": "3cd9ceb062fe5814f668e4f22b2fa6e3ba0b339b921739541ce180cac4d6f4c4",
-      "url": "https://codeload.github.com/hunspell/hunspell/tar.gz/refs/tags/v1.6.2",
-      "languages": [],
-      "description": "Complete Hunspell 1.6.2 source, which Any's spelling engine (hunspell-asm 4.0.2) compiles to WebAssembly. Distributed under its MPL 1.1 option."
-    },
-    {
-      "file": "sources/docker-hunspell-wasm-fc6a952.tar.gz",
-      "bytes": 2838,
-      "sha256": "d0388485ffa6a4e47be558a293f76ed88af3b600793dddcf4fd7f1bf4a6b70d5",
-      "url": "https://codeload.github.com/kwonoj/docker-hunspell-wasm/tar.gz/fc6a952fd11ae95f4bce4118c1b41f5bee3d91d1",
-      "languages": [],
-      "description": "The Dockerfile, Emscripten flags and build script that produced hunspell-asm's WebAssembly binary (release fc6a952-200131)."
     }
   ]
 }

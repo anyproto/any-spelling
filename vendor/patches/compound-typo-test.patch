@@ -1,0 +1,34 @@
+--- a/src/hunspell/hunspell.cxx
++++ b/src/hunspell/hunspell.cxx
+@@ -35,6 +35,11 @@
+  *
+  * ***** END LICENSE BLOCK ***** */
+ /*
++ * Modified for Any (https://github.com/anyproto/any-ui), 2026-10-22: the
++ * compound typo test in HunspellImpl::checkword can be compiled out with
++ * ANY_HUNSPELL_SKIP_COMPOUND_TYPO_TEST. Description: ../PATCHES.md.
++ */
++/*
+  * Copyright 2002 Kevin B. Hendricks, Stratford, Ontario, Canada
+  * And Contributors.  All rights reserved.
+  *
+@@ -1022,6 +1027,11 @@
+         // - not a dictionary word with a typo and
+         // - not two words written separately,
+         // - or if it's an arbitrary number accepted by compound rules (e.g. 999%)
++        // Modified for Any, 2026-10-22: built with
++        // ANY_HUNSPELL_SKIP_COMPOUND_TYPO_TEST, this test is skipped. It runs
++        // the suggester for every compound of three or more words, 5-25 ms per
++        // German compound. See ../PATCHES.md.
++#ifndef ANY_HUNSPELL_SKIP_COMPOUND_TYPO_TEST
+         if (he && !isdigit(word[0]))
+         {
+           std::vector<std::string> slst;
+@@ -1039,6 +1049,7 @@
+           if (simple)
+             he = nullptr;
+         }
++#endif
+       }
+ 
+       // LANG_hu section: `moving rule' with last dash
