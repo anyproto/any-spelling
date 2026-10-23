@@ -51,8 +51,6 @@ async function checkLocal(manifest) {
     }
   }
 
-  const declared = [...(await readFile(join(root, 'index.d.ts'), 'utf8')).matchAll(/\|\s*'([^']+)'/g)].map((match) => match[1])
-  if (declared.join() !== ids.join()) errors.push(`index.d.ts DictionaryId is [${declared}], manifest has [${ids}]`)
 
   return errors
 }

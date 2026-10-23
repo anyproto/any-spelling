@@ -2,4 +2,3 @@
 *.aff -diff linguist-generated=true
 sources/** binary
 /sources export-ignore
-/scripts export-ignore

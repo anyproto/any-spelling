@@ -1,12 +1,15 @@
-# @anyproto/spelling-dictionaries
+# anyproto/spelling-dictionaries
 
-The Hunspell dictionaries Any uses for on-device spell checking, kept in their
-own repository so the app carries a dependency line instead of tens of megabytes
-of word lists. It is not published to a registry: the app installs it straight
-from git, pinned to a commit.
+The Hunspell dictionaries Any uses for on-device spell checking, and the Rust
+crates that check spelling with them. The desktop app depends on this
+repository through Cargo, pinned to a commit; nothing is published to a
+registry.
 
-The package holds data only. The checking engine, the language picker and the
-personal dictionary live in the app.
+- `any-spelling` — the checker: sessions over any set of the dictionaries
+  below, a personal vocabulary Hunspell never sees, script gating, suggestion
+  ranking, and issues reported in UTF-16 offsets for a JavaScript caller.
+- `hunspell-sys` — Hunspell 1.7.5 compiled from vendored source, with one
+  marked change ([`hunspell-sys/PATCHES.md`](hunspell-sys/PATCHES.md)).
 
 ## Dictionaries
 
@@ -27,7 +30,7 @@ personal dictionary live in the app.
 
 The `index.aff`, `index.dic` and `license` files are the unmodified npm
 distribution files from [wooorm/dictionaries](https://github.com/wooorm/dictionaries).
-`npm run verify:upstream` downloads each npm tarball and proves it byte for byte.
+`node scripts/verify.js --upstream` downloads each npm tarball and proves it byte for byte.
 
 - `dictionary-pt` is the Brazilian VERO dictionary despite its generic name, so
   it is exposed as `pt-BR`; Portugal has its own pack.
@@ -39,38 +42,37 @@ distribution files from [wooorm/dictionaries](https://github.com/wooorm/dictiona
 
 ## Usage
 
-Add the dependency pinned to a full commit SHA; the lockfile records it, so every
-install gets the same bytes:
-
-```json
-"@anyproto/spelling-dictionaries": "github:anyproto/spelling-dictionaries#<commit-sha>"
+```toml
+any-spelling = { git = "https://github.com/anyproto/spelling-dictionaries", rev = "<commit-sha>" }
 ```
 
-```js
-import { dictionaries } from '@anyproto/spelling-dictionaries'
-import aff from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.aff?url&no-inline'
-import dic from '@anyproto/spelling-dictionaries/dictionaries/en-US/index.dic?url&no-inline'
+```rust
+let registry = any_spelling::Registry::new(dictionaries_dir);
+let session = registry.prepare("window", &["en-US".into(), "de-DE".into()], &[])?;
+let issues = registry.engine(session)?.check(text, &cancelled)?;
 ```
 
-`dictionaries` lists each id with the npm release and license it came from. The
-`?url` imports are Vite's: the files are emitted as hashed assets and fetched
-only when a language is selected. `no-inline` keeps the small `.aff` files from
-becoming `data:` URLs, which a `connect-src 'self'` policy refuses to fetch.
+The crate does not embed the dictionaries: a consumer ships them as files.
+`any-spelling` declares `links = "any_spelling"`, so a dependent's build script
+reads this checkout's `dictionaries/` path from `DEP_ANY_SPELLING_DICTIONARIES`
+and copies the files into its bundle. Only selected languages are loaded, each
+once, however many sessions use it.
 
 ## Layout
 
-| Path                     | Installed | What it is                                                   |
-| ------------------------ | --------- | ------------------------------------------------------------ |
-| `dictionaries/<id>/`     | yes       | `index.aff`, `index.dic` and the original `license` notice   |
-| `licenses/`              | yes       | Full GPL, LGPL and MPL texts; `engine/` holds engine notices |
-| `manifest.json`          | yes       | Upstream release, size and SHA-256 of every file and archive |
-| `index.js`, `index.d.ts` | yes       | The dictionary list and its `DictionaryId` type              |
-| `sources/`               | no        | Preferred-form sources for the dictionaries and the engine   |
-| `scripts/verify.js`      | no        | The hash and upstream check                                  |
+| Path                   | What it is                                                    |
+| ---------------------- | ------------------------------------------------------------- |
+| `dictionaries/<id>/`   | `index.aff`, `index.dic` and the original `license` notice    |
+| `any-spelling/`        | The checker crate and its tests against the real dictionaries |
+| `hunspell-sys/`        | Hunspell 1.7.5 source, its licenses, `PATCHES.md`, `patches/` |
+| `licenses/`            | Full GPL, LGPL and MPL texts the dictionary licenses name     |
+| `manifest.json`        | Upstream release, size and SHA-256 of every file and archive  |
+| `sources/`             | Preferred-form sources for the dictionaries and Hunspell      |
+| `scripts/verify.js`    | The byte-for-byte check against the upstream npm releases     |
 
-`sources/` and `scripts/` are `export-ignore` in `.gitattributes`, so the commit
-archive a package manager downloads leaves them out; `files` in `package.json`
-keeps them out of an install from a full clone. Both stay in git history.
+`cargo test` checks every file against `manifest.json`. `sources/` is
+`export-ignore` in `.gitattributes`, so a commit archive leaves it out; Cargo
+clones the repository, so it is present there, and it stays in git history.
 
 ## Sources
 
@@ -101,50 +103,39 @@ repository to get them.
   package-generation scripts are kept as
   `sources/wooorm-dictionary-tools-a7c018c.tar.gz`.
 
-The engine that reads these dictionaries is not in this package, but its
-sources are kept here for the same reason: Any distributes Hunspell compiled to
-WebAssembly (through `hunspell-asm@4.0.2`) under the MPL 1.1 option.
-`sources/hunspell-1.6.2.tar.gz` is the complete Hunspell source and
-`sources/docker-hunspell-wasm-fc6a952.tar.gz` the build that produced the binary;
-both are byte-identical to the GitHub archives their manifest entries name.
+Hunspell's source is kept for the same reason: `sources/hunspell-1.7.5.tar.gz`
+is byte-identical to the release tarball its manifest entry names, and
+`hunspell-sys/hunspell/` is its `src/hunspell/` with the change
+`hunspell-sys/PATCHES.md` records.
 
 ## Licensing
 
-The code in this repository (`index.js`, `index.d.ts`, `scripts/`) is MIT; see
-[LICENSE](LICENSE).
+The code written for this repository (`any-spelling/`, `scripts/`, the build
+script and bindings in `hunspell-sys/`) is MIT; see [LICENSE](LICENSE).
 
 Each dictionary keeps its own license, recorded in its `license` file and in the
 table above. The dictionaries are separate data files and are not relicensed by
-this package or by the app that loads them. That is why `package.json` points at
-this section instead of declaring `MIT`: a license scanner would otherwise read
-the GPL dictionaries as MIT.
+this repository or by the app that loads them.
 
-### Spelling engine
+### Hunspell
 
-Any checks spelling with [hunspell-asm 4.0.2](https://github.com/kwonoj/hunspell-asm/tree/v4.0.2)
-(MIT, OJ Kwon), whose WebAssembly runtime is built from **Hunspell 1.6.2**. Hunspell
-is offered under MPL 1.1, GPL 2.0 or LGPL 2.1; Any uses the **MPL 1.1** option.
-The engine's notices are kept here with the dictionaries' so that one place
-covers everything the app's spell checker distributes:
-
-| Component                      | License                      | Notice                                                                                                                  |
-| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Hunspell 1.6.2                 | MPL 1.1 / GPL 2.0 / LGPL 2.1 | `licenses/engine/Hunspell-LICENSE.txt`, `licenses/MPL-1.1.txt`                                                          |
-| `hunspell-asm@4.0.2`           | MIT                          | `licenses/engine/hunspell-asm-MIT.txt`                                                                                  |
-| `emscripten-wasm-loader@3.0.3` | MIT                          | `licenses/engine/emscripten-wasm-loader-package.json` (it publishes no license file; its package metadata declares MIT) |
-| `nanoid@2.1.11`                | MIT                          | `licenses/engine/nanoid-MIT.txt`                                                                                        |
-| `getroot@1.0.0`                | MIT                          | `licenses/engine/getroot-MIT.txt`                                                                                       |
-| `unixify@1.0.0`                | MIT                          | `licenses/engine/unixify-MIT.txt`                                                                                       |
-
-The Hunspell source and the
-[docker-hunspell-wasm fc6a952-200131](https://github.com/kwonoj/docker-hunspell-wasm/releases/tag/fc6a952-200131)
-build that produced the binary are in `sources/` (see [Sources](#sources)).
+`hunspell-sys/hunspell/` is **Hunspell 1.7.5**, offered under MPL 1.1, GPL 2.0 or
+LGPL 2.1; Any uses the **MPL 1.1** option. Its license texts sit beside it
+(`COPYING`, `COPYING.LESSER`, `COPYING.MPL`, `license.hunspell`,
+`license.myspell`), and every change to it is marked in the file and recorded
+in `hunspell-sys/PATCHES.md`.
 
 ## Updating a dictionary
 
 1. Replace the files under `dictionaries/<id>/` with the new npm release.
 2. Update that entry in `manifest.json` (version, tarball, sizes, hashes), and
    its source archive if the upstream source changed.
-3. Run `npm run verify` and `npm run verify:upstream`, bump `version` in
-   `package.json`, and commit.
-4. Point the app's dependency at the new commit SHA.
+3. Run `cargo test` and `node scripts/verify.js --upstream`, and commit.
+4. Point the app's `rev` at the new commit SHA.
+
+## Updating Hunspell
+
+Add the new release tarball to `sources/` and `manifest.json`, replace
+`hunspell-sys/hunspell/` with its `src/hunspell/` and license files, re-apply
+the patches `hunspell-sys/PATCHES.md` lists (or drop them), bump the version in
+`hunspell-sys/Cargo.toml`, and run `cargo test`.
