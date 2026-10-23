@@ -2,14 +2,14 @@
 //! `manifest.json` names. It downloads twelve tarballs, so it runs only on
 //! request: `cargo test --test upstream -- --ignored`. Needs `curl` and `tar`.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 fn root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("..")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn run(command: &mut Command) -> Result<(), String> {

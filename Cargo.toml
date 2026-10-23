@@ -1,3 +1,24 @@
-[workspace]
-members = ["hunspell-sys", "any-spelling"]
-resolver = "2"
+[package]
+name = "any-spelling"
+version = "0.1.0"
+description = "Any's spell checker: Hunspell 1.7.5 over the dictionaries in this repository, with multilingual sessions, personal words and UTF-16 issue offsets"
+license = "MIT AND (MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later)"
+edition = "2021"
+rust-version = "1.88"
+# Lets the app's build script find `dictionaries/` (DEP_ANY_SPELLING_DICTIONARIES).
+links = "any_spelling"
+publish = false
+
+[dependencies]
+icu_segmenter = { version = "2.4.0", default-features = false, features = ["compiled_data"] }
+icu_normalizer = "2.3.0"
+fancy-regex = "0.19.2"
+regex = "1.12.4"
+serde = { version = "1.0", features = ["derive"] }
+
+[build-dependencies]
+cc = "1.2"
+
+[dev-dependencies]
+serde_json = "1.0"
+sha2 = "0.10"

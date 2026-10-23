@@ -15,8 +15,8 @@ dependencies = [
 name = "any-spelling"
 version = "0.1.0"
 dependencies = [
+ "cc",
  "fancy-regex",
- "hunspell-sys",
  "icu_normalizer",
  "icu_segmenter",
  "regex",
@@ -130,13 +130,6 @@ checksum = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
 dependencies = [
  "typenum",
  "version_check",
-]
-
-[[package]]
-name = "hunspell-sys"
-version = "1.7.5"
-dependencies = [
- "cc",
 ]
 
 [[package]]

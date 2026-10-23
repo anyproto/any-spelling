@@ -1,15 +1,13 @@
 # anyproto/spelling-dictionaries
 
 The Hunspell dictionaries Any uses for on-device spell checking, and the Rust
-crates that check spelling with them. The desktop app depends on this
-repository through Cargo, pinned to a commit; nothing is published to a
-registry.
-
-- `any-spelling` — the checker: sessions over any set of the dictionaries
-  below, a personal vocabulary Hunspell never sees, script gating, suggestion
-  ranking, and issues reported in UTF-16 offsets for a JavaScript caller.
-- `hunspell-sys` — Hunspell 1.7.5 compiled from vendored source, with one
-  marked change ([`hunspell-sys/PATCHES.md`](hunspell-sys/PATCHES.md)).
+crate, `any-spelling`, that checks spelling with them: sessions over any set of
+the dictionaries below, a personal vocabulary Hunspell never sees, script
+gating, suggestion ranking, and issues reported in UTF-16 offsets for a
+JavaScript caller. Hunspell 1.7.5 is compiled from vendored source with one
+marked change ([`vendor/PATCHES.md`](vendor/PATCHES.md)). The desktop app
+depends on this repository through Cargo, pinned to a commit; nothing is
+published to a registry.
 
 ## Dictionaries
 
@@ -64,8 +62,9 @@ once, however many sessions use it.
 | Path                   | What it is                                                    |
 | ---------------------- | ------------------------------------------------------------- |
 | `dictionaries/<id>/`   | `index.aff`, `index.dic` and the original `license` notice    |
-| `any-spelling/`        | The checker crate and its tests against the real dictionaries |
-| `hunspell-sys/`        | Hunspell 1.7.5 source, its licenses, `PATCHES.md`, `patches/` |
+| `src/`, `tests/`       | The checker and its tests against the real dictionaries       |
+| `build.rs`             | Compiles Hunspell; reports `dictionaries/` to the app         |
+| `vendor/`              | Hunspell 1.7.5 source and licenses, `PATCHES.md`, `patches/`  |
 | `licenses/`            | Full GPL, LGPL and MPL texts the dictionary licenses name     |
 | `manifest.json`        | Upstream release, size and SHA-256 of every file and archive  |
 | `sources/`             | Preferred-form sources for the dictionaries                   |
@@ -103,13 +102,13 @@ repository to get them.
   package-generation scripts are kept as
   `sources/wooorm-dictionary-tools-a7c018c.tar.gz`.
 
-Hunspell's own source is `hunspell-sys/hunspell/`: the `src/hunspell/` of the
-1.7.5 release with the change `hunspell-sys/PATCHES.md` records.
+Hunspell's own source is `vendor/hunspell/`: the `src/hunspell/` of the 1.7.5
+release with the change `vendor/PATCHES.md` records.
 
 ## Licensing
 
-The code written for this repository (`any-spelling/`, `scripts/`, the build
-script and bindings in `hunspell-sys/`) is MIT; see [LICENSE](LICENSE).
+The code written for this repository (`src/`, `tests/`, `build.rs`) is MIT; see
+[LICENSE](LICENSE).
 
 Each dictionary keeps its own license, recorded in its `license` file and in the
 table above. The dictionaries are separate data files and are not relicensed by
@@ -117,11 +116,11 @@ this repository or by the app that loads them.
 
 ### Hunspell
 
-`hunspell-sys/hunspell/` is **Hunspell 1.7.5**, offered under MPL 1.1, GPL 2.0 or
+`vendor/hunspell/` is **Hunspell 1.7.5**, offered under MPL 1.1, GPL 2.0 or
 LGPL 2.1; Any uses the **MPL 1.1** option. Its license texts sit beside it
 (`COPYING`, `COPYING.LESSER`, `COPYING.MPL`, `license.hunspell`,
 `license.myspell`), and every change to it is marked in the file and recorded
-in `hunspell-sys/PATCHES.md`.
+in `vendor/PATCHES.md`.
 
 ## Updating a dictionary
 
@@ -133,6 +132,6 @@ in `hunspell-sys/PATCHES.md`.
 
 ## Updating Hunspell
 
-Replace `hunspell-sys/hunspell/` with the new release's `src/hunspell/` and license files, re-apply
-the patches `hunspell-sys/PATCHES.md` lists (or drop them), bump the version in
-`hunspell-sys/Cargo.toml`, and run `cargo test`.
+Replace `vendor/hunspell/` with the new release's `src/hunspell/` and license
+files, re-apply the patches `vendor/PATCHES.md` lists (or drop them), update the
+version in `Cargo.toml`'s description and the version test, and run `cargo test`.

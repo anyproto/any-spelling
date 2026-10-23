@@ -6,7 +6,7 @@ use std::path::Path;
 use std::ptr::NonNull;
 use std::sync::Mutex;
 
-use hunspell_sys as ffi;
+use crate::ffi;
 
 struct Handle(NonNull<ffi::Hunhandle>);
 

@@ -9,7 +9,7 @@ use super::registry::{open_dictionary, Registry};
 use super::tokenize::{spelling_words, utf16_len};
 
 fn dictionaries() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../dictionaries")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("dictionaries")
 }
 
 static REGISTRY: LazyLock<Registry> = LazyLock::new(|| Registry::new(dictionaries()));
@@ -383,7 +383,7 @@ fn checks_long_german_compounds_without_running_the_suggester() {
         .filter(|word| word.chars().count() >= 20)
         .collect();
     assert!(long.len() >= 10);
-    // Upstream 1.7.5 spends 5-25 ms on each (hunspell-sys/PATCHES.md).
+    // Upstream 1.7.5 spends 5-25 ms on each (vendor/PATCHES.md).
     let fastest = (0..3)
         .map(|_| {
             let started = std::time::Instant::now();

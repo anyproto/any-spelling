@@ -15,7 +15,7 @@ Hunspell 1.7.2 added a check (LibreOffice tdf#136306): a word accepted as a
 compound of three or more parts is rejected again if the suggester finds a
 "simpler" spelling of it. The suggester runs for every such compound, so each
 German one costs 5–25 ms instead of 0.1–0.5 ms, and a cold check of a German
-paragraph took 169 ms instead of 5 ms. `build.rs` defines
+paragraph took 169 ms instead of 5 ms. The crate's `build.rs` defines
 `ANY_HUNSPELL_SKIP_COMPOUND_TYPO_TEST`, which wraps that block in `#ifndef`;
 nothing else changes, and suggestions are unaffected.
 

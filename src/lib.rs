@@ -3,6 +3,7 @@
 //! issues reported in UTF-16 offsets for a JavaScript caller.
 
 mod engine;
+mod ffi;
 mod hunspell;
 mod languages;
 mod registry;
