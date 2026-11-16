@@ -4,10 +4,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    # Weekly, so a new RustSec advisory against a locked crate surfaces
-    # without waiting for the next change.
-    - cron: "17 6 * * 1"
   workflow_dispatch:
 
 permissions:
