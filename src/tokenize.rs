@@ -17,12 +17,15 @@ pub const MAX_SPELLING_WORD: usize = 128;
 /// ECMAScript `\s`, which differs from Unicode `White_Space` at U+0085 and U+FEFF.
 const JS_SPACE: &str = r"\t\n\x0B\x0C\r \u{A0}\u{1680}\u{2000}-\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{FEFF}";
 
+// A URL scheme is capped at 32 characters: the lookbehind lets a match start
+// after every `+`, `.` or `-`, and an unbounded scheme rescans the rest of
+// the run from each of them, which is quadratic in a long `a-a-a-…`.
 // JavaScript's `\b` under the `u` flag is ASCII; it precedes `[a-z]` or `w`
 // here, so it is exactly "not after an ASCII word character". Under `(?i)` that
 // class also matches U+017F and U+212A, as `\b` does in JavaScript with `iu`.
 static EXCLUDED: LazyLock<FancyRegex> = LazyLock::new(|| {
     FancyRegex::new(&format!(
-        r"(?i)```(?s:.)*?(?:```|$)|`[^`\n]*`|(?<![A-Za-z0-9_])(?:[a-z][a-z0-9+.-]*://|www\.)[^{JS_SPACE}<>]+|(?<![\p{{L}}\p{{N}}.!#$%&'*+/=?^_`{{|}}~-])[\p{{L}}\p{{N}}.!#$%&'*+/=?^_`{{|}}~-]+@[\p{{L}}\p{{N}}.-]+\.\p{{L}}{{2,}}|(?:[A-Za-z]:\\|/)[\p{{L}}\p{{N}}_.\\/-]+|(?<![\p{{L}}\p{{N}}_])[\p{{L}}\p{{N}}_]+(?:\.[\p{{L}}\p{{N}}_]+)+"
+        r"(?i)```(?s:.)*?(?:```|$)|`[^`\n]*`|(?<![A-Za-z0-9_])(?:[a-z][a-z0-9+.-]{{0,31}}://|www\.)[^{JS_SPACE}<>]+|(?<![\p{{L}}\p{{N}}.!#$%&'*+/=?^_`{{|}}~-])[\p{{L}}\p{{N}}.!#$%&'*+/=?^_`{{|}}~-]+@[\p{{L}}\p{{N}}.-]+\.\p{{L}}{{2,}}|(?:[A-Za-z]:\\|/)[\p{{L}}\p{{N}}_.\\/-]+|(?<![\p{{L}}\p{{N}}_])[\p{{L}}\p{{N}}_]+(?:\.[\p{{L}}\p{{N}}_]+)+"
     ))
     .expect("the exclusion pattern compiles")
 });
