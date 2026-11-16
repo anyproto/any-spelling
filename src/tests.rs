@@ -615,3 +615,20 @@ fn handles_a_pasted_long_identifier_without_quadratic_address_matching() {
     assert_eq!(spelling_words(&"a.".repeat(100_000)), []);
     assert!(started.elapsed() < std::time::Duration::from_secs(5));
 }
+
+#[test]
+fn checks_a_long_hyphenated_run_without_rescanning_it_as_a_url_scheme() {
+    for run in ["ab-".repeat(66_000), "ab+".repeat(66_000)] {
+        let started = std::time::Instant::now();
+        assert_eq!(spelling_words(&run).len(), 66_000);
+        assert!(
+            started.elapsed() < std::time::Duration::from_secs(1),
+            "{:?} took {:?}",
+            &run[..3],
+            started.elapsed()
+        );
+    }
+    let text = "see git+ssh://hots/pathh";
+    let found: Vec<&str> = spelling_words(text).iter().map(|word| word.word).collect();
+    assert_eq!(found, ["see"]);
+}
