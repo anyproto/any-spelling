@@ -38,6 +38,12 @@ them byte for byte; plain `cargo test` skips it.
   [LibreOffice/dictionaries](https://github.com/LibreOffice/dictionaries/tree/e7f163feb2beaf526135132d8716e68e19d2716e/en)
   at `e7f163f`; its `README_en_GB.txt` is the `license`. Its `.aff` and `.dic`
   start with a byte order mark, which Hunspell and the loader skip.
+  Its `.aff` carries a `PHONE` table, so suggestions also run Hunspell's
+  phonetic pass. It is kept on purpose: on 30 sound-based typos it found two
+  corrections nothing else did (`fonetik` → phonetic, `sinonim` → synonym) and
+  changed no other result, for about 12 ms per suggestion (≈35 ms instead of
+  ≈20 ms). Turning it off would mean editing the upstream file or stripping it
+  at load; revisit only if suggestions become slow in practice.
 - The other ten are the npm distribution files from
   [wooorm/dictionaries](https://github.com/wooorm/dictionaries).
 
