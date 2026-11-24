@@ -4,7 +4,7 @@ use std::sync::{Arc, LazyLock};
 
 use super::engine::{Issue, SpellingEngine, SpellingError};
 use super::hunspell::{library_version, Dictionary};
-use super::languages::LANGUAGES;
+use super::languages::{vocabulary, LANGUAGES};
 use super::registry::{open_dictionary, Registry};
 use super::tokenize::{spelling_words, utf16_len};
 
@@ -67,14 +67,14 @@ fn compiles_hunspell_1_7_5() {
 }
 
 #[test]
-fn keeps_all_reachable_for_al_instead_of_spending_slots_on_case_variants() {
+fn keeps_the_reachable_for_teh_instead_of_spending_slots_on_case_variants() {
     for languages in [&["en-US"][..], &["en-GB"], &["en-US", "en-GB"]] {
         let checker = engine(languages, &[]);
-        assert_eq!(check(&checker, "all"), []);
-        assert_eq!(check(&checker, "al"), whole("al"));
-        let suggestions = suggest(&checker, "al");
+        assert_eq!(check(&checker, "the"), []);
+        assert_eq!(check(&checker, "teh"), whole("teh"));
+        let suggestions = suggest(&checker, "teh");
         assert!(
-            suggestions.iter().any(|word| word == "all"),
+            suggestions.iter().any(|word| word == "the"),
             "{languages:?}: {suggestions:?}"
         );
         assert!(suggestions.len() <= 8);
@@ -85,7 +85,7 @@ fn keeps_all_reachable_for_al_instead_of_spending_slots_on_case_variants() {
         keys.sort();
         keys.dedup();
         assert_eq!(keys.len(), suggestions.len(), "{suggestions:?}");
-        assert_eq!(suggest(&checker, "al"), suggestions);
+        assert_eq!(suggest(&checker, "teh"), suggestions);
     }
 }
 
@@ -102,7 +102,7 @@ fn preserves_dictionary_capitalization_corrections_and_multilingual_suggestions(
         Some("Berlin")
     );
     let mixed = engine(&["en-US", "de-DE"], &[]);
-    assert!(suggest(&mixed, "al").contains(&"all".to_owned()));
+    assert!(suggest(&mixed, "teh").contains(&"the".to_owned()));
     assert!(suggest(&mixed, "Huas").contains(&"Haus".to_owned()));
 }
 
@@ -631,4 +631,69 @@ fn checks_a_long_hyphenated_run_without_rescanning_it_as_a_url_scheme() {
     let text = "see git+ssh://hots/pathh";
     let found: Vec<&str> = spelling_words(text).iter().map(|word| word.word).collect();
     assert_eq!(found, ["see"]);
+}
+
+#[test]
+fn knows_the_derived_words_each_english_spelling_uses() {
+    let british = engine(&["en-GB"], &[]);
+    let text = "personalisation prioritisation wellbeing judgement favourite programme";
+    assert_eq!(check(&british, text), []);
+    assert_eq!(
+        words(&check(&british, "color personalization")),
+        ["color", "personalization"]
+    );
+    let american = engine(&["en-US"], &[]);
+    let text = "personalization prioritization tokenization codebase favorite program";
+    assert_eq!(check(&american, text), []);
+    assert_eq!(words(&check(&american, "colour")), ["colour"]);
+}
+
+#[test]
+fn every_english_session_accepts_and_suggests_the_shared_vocabulary() {
+    for languages in [&["en-US"][..], &["en-GB"], &["en-US", "en-GB"]] {
+        let checker = engine(languages, &[]);
+        for word in vocabulary("en-US") {
+            assert_eq!(check(&checker, word), [], "{languages:?}");
+        }
+        assert_eq!(
+            check(&checker, "Dropdown Tooltips POPUP"),
+            [],
+            "{languages:?}"
+        );
+        assert_eq!(
+            check(&checker, "dropdwon"),
+            whole("dropdwon"),
+            "{languages:?}"
+        );
+        let suggestions = suggest(&checker, "tooltp");
+        assert!(
+            suggestions.iter().any(|word| word == "tooltip"),
+            "{languages:?}: {suggestions:?}"
+        );
+    }
+    assert_eq!(
+        words(&check(&engine(&["fr-FR"], &[]), "dropdown")),
+        ["dropdown"]
+    );
+}
+
+#[test]
+fn the_shared_vocabulary_lists_only_words_an_english_dictionary_lacks() {
+    let plain = |id: &str| {
+        let folder = dictionaries().join(id);
+        Dictionary::open(&folder.join("index.aff"), &folder.join("index.dic"), id)
+            .expect("the dictionary loads")
+    };
+    let (american, british) = (plain("en-US"), plain("en-GB"));
+    let known: Vec<&str> = vocabulary("en-GB")
+        .filter(|word| american.spell(word) && british.spell(word))
+        .collect();
+    assert_eq!(known, Vec::<&str>::new());
+    let all: Vec<&str> = vocabulary("en-GB").collect();
+    let mut sorted = all.clone();
+    sorted.sort_unstable();
+    sorted.dedup();
+    assert_eq!(all, sorted, "one word per line, sorted");
+    assert!(all.iter().all(|word| spelling_words(word).len() == 1));
+    assert_eq!(vocabulary("de-DE").count(), 0);
 }

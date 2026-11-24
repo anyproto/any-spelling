@@ -14,8 +14,8 @@ registry.
 
 | Id      | Language              | Taken from               | Dictionary license                                    |
 | ------- | --------------------- | ------------------------ | ----------------------------------------------------- |
-| `en-US` | English (US)          | `dictionary-en@4.0.0`    | MIT and BSD                                           |
-| `en-GB` | English (UK)          | `dictionary-en-gb@3.0.0` | MIT and BSD                                           |
+| `en-US` | English (US)          | SCOWL `en_US-large` 2026.02.25 | MIT and BSD                                     |
+| `en-GB` | English (UK)          | LibreOffice `en_GB` 2025-03-31 | LGPL                                            |
 | `de-DE` | German                | `dictionary-de@3.0.0`    | GPL 2.0 or GPL 3.0                                    |
 | `ru-RU` | Russian               | `dictionary-ru@3.0.0`    | BSD 3-Clause                                          |
 | `uk-UA` | Ukrainian             | `dictionary-uk@4.0.0`    | GPL 3.0                                               |
@@ -27,10 +27,29 @@ registry.
 | `nl-NL` | Dutch                 | `dictionary-nl@2.0.0`    | BSD 3-Clause or CC BY 3.0                             |
 | `pl-PL` | Polish                | `dictionary-pl@2.0.0`    | GPL, LGPL, MPL, or CC ShareAlike; see original notice |
 
-The `index.aff`, `index.dic` and `license` files are the unmodified npm
-distribution files from [wooorm/dictionaries](https://github.com/wooorm/dictionaries).
-`cargo test --test upstream -- --ignored` downloads each npm tarball and proves
+The `index.aff`, `index.dic` and `license` files are unmodified upstream files.
+`cargo test --test upstream -- --ignored` downloads each release and proves
 them byte for byte; plain `cargo test` skips it.
+
+- English (US) is the SCOWL size 70 ("large") Hunspell dictionary from the
+  [en-wl/wordlist 2026.02.25 release](https://github.com/en-wl/wordlist/releases/tag/rel-2026.02.25);
+  its README is the `license`.
+- English (UK) is Marco A. G. Pinto's dictionary as LibreOffice ships it, from
+  [LibreOffice/dictionaries](https://github.com/LibreOffice/dictionaries/tree/e7f163feb2beaf526135132d8716e68e19d2716e/en)
+  at `e7f163f`; its `README_en_GB.txt` is the `license`. Its `.aff` and `.dic`
+  start with a byte order mark, which Hunspell and the loader skip.
+  Its `.aff` carries a `PHONE` table, so suggestions also run Hunspell's
+  phonetic pass. It is kept on purpose: on 30 sound-based typos it found two
+  corrections nothing else did (`fonetik` → phonetic, `sinonim` → synonym) and
+  changed no other result, for about 12 ms per suggestion (≈35 ms instead of
+  ≈20 ms). Turning it off would mean editing the upstream file or stripping it
+  at load; revisit only if suggestions become slow in practice.
+- The other ten are the npm distribution files from
+  [wooorm/dictionaries](https://github.com/wooorm/dictionaries).
+
+The standard SCOWL size 60 English dictionaries, which npm and Chromium ship,
+lack common derived words (`personalisation`, `prioritization`) and most
+software vocabulary; the two above cover far more of both.
 
 - `dictionary-pt` is the Brazilian VERO dictionary despite its generic name, so
   it is exposed as `pt-BR`; Portugal has its own pack.
@@ -39,6 +58,14 @@ them byte for byte; plain `cargo test` skips it.
 - The Polish npm release declares GPL 3.0 / LGPL 3.0 / MPL 2.0 alternatives while
   its original 2008 notice lists license families without versions. Any uses the
   GPL 3.0 option and keeps the original notice unchanged.
+
+## Shared English vocabulary
+
+`vocabulary/en.txt` lists software and interface words (`dropdown`, `tooltip`,
+`popup`, `fullscreen`) that `en-US` or `en-GB` lacks. The registry adds them to
+Hunspell when an English dictionary loads, so every English session accepts
+them and offers them as corrections. List every inflected form, one per line,
+sorted; a test fails on a word both English dictionaries already accept.
 
 ## Usage
 
@@ -63,6 +90,7 @@ once, however many sessions use it.
 | Path                   | What it is                                                    |
 | ---------------------- | ------------------------------------------------------------- |
 | `dictionaries/<id>/`   | `index.aff`, `index.dic` and the original `license` notice    |
+| `vocabulary/en.txt`    | Words every English session adds to Hunspell                  |
 | `src/`, `tests/`       | The checker and its tests against the real dictionaries       |
 | `build.rs`             | Compiles Hunspell; reports `dictionaries/` to the app         |
 | `vendor/`              | Hunspell 1.7.5 source and licenses, `PATCHES.md`, `patches/`  |
@@ -125,10 +153,11 @@ in `vendor/PATCHES.md`.
 
 ## Updating a dictionary
 
-1. Replace the files under `dictionaries/<id>/` with the new npm release.
+1. Replace the files under `dictionaries/<id>/` with the new upstream release.
 2. Update that entry in `manifest.json` (version, tarball, sizes, hashes), and
    its source archive if the upstream source changed.
-3. Run `cargo test` and `cargo test --test upstream -- --ignored`, and commit.
+3. Run `cargo test` and `cargo test --test upstream -- --ignored`; drop any
+   `vocabulary/en.txt` word the test reports the dictionaries now accept; commit.
 4. Point the app's `rev` at the new commit SHA.
 
 ## Updating Hunspell

@@ -46,6 +46,8 @@ fn validate(aff: &Path, dic: &Path, label: &str) -> Result<(), String> {
         return Err(invalid());
     }
     let dic_text = read_utf8(dic, label)?;
+    // Hunspell skips a byte order mark; LibreOffice's en_GB starts with one.
+    let dic_text = dic_text.strip_prefix('\u{feff}').unwrap_or(&dic_text);
     let (header, rest) = dic_text.split_once('\n').ok_or_else(invalid)?;
     let header = header.trim();
     let count_valid = !header.is_empty()
@@ -102,6 +104,15 @@ impl Dictionary {
         self.handle
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    pub fn add(&self, word: &str) -> Result<(), String> {
+        let text = CString::new(word).map_err(|_| format!("{word:?} contains NUL"))?;
+        let handle = self.handle();
+        match unsafe { ffi::Hunspell_add(handle.0.as_ptr(), text.as_ptr()) } {
+            0 => Ok(()),
+            _ => Err(format!("Hunspell refused {word:?}")),
+        }
     }
 
     pub fn spell(&self, word: &str) -> bool {
