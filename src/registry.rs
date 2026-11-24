@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex, PoisonError, Weak};
 
 use super::engine::{LanguageDictionary, SpellingEngine, SpellingError};
 use super::hunspell::Dictionary;
-use super::languages::language;
+use super::languages::{language, vocabulary};
 
 struct Session {
     window: String,
@@ -173,5 +173,9 @@ impl Registry {
 
 pub fn open_dictionary(directory: &Path, id: &str, label: &str) -> Result<Dictionary, String> {
     let folder = directory.join(id);
-    Dictionary::open(&folder.join("index.aff"), &folder.join("index.dic"), label)
+    let dictionary = Dictionary::open(&folder.join("index.aff"), &folder.join("index.dic"), label)?;
+    for word in vocabulary(id) {
+        dictionary.add(word)?;
+    }
+    Ok(dictionary)
 }

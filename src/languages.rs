@@ -76,6 +76,20 @@ pub const LANGUAGES: &[Language] = &[
     },
 ];
 
+const ENGLISH_VOCABULARY: &str = include_str!("../vocabulary/en.txt");
+
+/// Words a language's dictionary lacks, added to it when it loads.
+pub fn vocabulary(id: &str) -> impl Iterator<Item = &'static str> {
+    let text = if id.starts_with("en-") {
+        ENGLISH_VOCABULARY
+    } else {
+        ""
+    };
+    text.lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+}
+
 pub fn language(id: &str) -> Option<&'static Language> {
     LANGUAGES.iter().find(|language| language.id == id)
 }

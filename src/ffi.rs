@@ -13,6 +13,7 @@ extern "C" {
     pub(crate) fn Hunspell_create(affpath: *const c_char, dpath: *const c_char) -> *mut Hunhandle;
     pub(crate) fn Hunspell_destroy(handle: *mut Hunhandle);
     pub(crate) fn Hunspell_spell(handle: *mut Hunhandle, word: *const c_char) -> c_int;
+    pub(crate) fn Hunspell_add(handle: *mut Hunhandle, word: *const c_char) -> c_int;
     pub(crate) fn Hunspell_get_dic_encoding(handle: *mut Hunhandle) -> *mut c_char;
     pub(crate) fn Hunspell_suggest(
         handle: *mut Hunhandle,
